@@ -1,72 +1,82 @@
 import customtkinter as ctk
 from constantes import *
-
+from Problem import *
+from Beam_Search.algoritmo.Beam_Search import *
 
 class Interfaz:
     def __init__(self, root):
         self.root = root
         self.root.title("Beam Search Selection")
-        self.root.geometry("770x500")
+        self.root.geometry("850x500")
         self.modo = None
         self.laberinto = []
         self.botones = []
         self.inicio_pos = None
         self.meta_pos = None
 
-        # Construir interfaz
         self.GUI()
 
     def GUI(self):
-        panel_superior = ctk.CTkFrame(self.root)
-        panel_superior.pack(side="top", fill="x", padx=8, pady=6)
+        panel_superior = ctk.CTkFrame(self.root, corner_radius=15)
+        panel_superior.pack(side="top", fill="x", padx=10, pady=10)
 
-        # Entradas para tamaño de matriz
-        ctk.CTkLabel(panel_superior, text="Filas:").grid(row=0, column=0, padx=(8, 4))
-        self.entry_rows = ctk.CTkEntry(panel_superior, width=70)
-        self.entry_rows.grid(row=0, column=1, padx=(0, 8))
+        for i in range(7):
+            panel_superior.grid_columnconfigure(i, weight=1)
 
-        ctk.CTkLabel(panel_superior, text="Columnas:").grid(row=0, column=2, padx=(8, 4))
-        self.entry_cols = ctk.CTkEntry(panel_superior, width=70)
-        self.entry_cols.grid(row=0, column=3, padx=(0, 8))
+        ctk.CTkLabel(panel_superior, text="Filas:").grid(row=0, column=0, padx=(5, 2), pady=6, sticky="e")
+        self.entry_rows = ctk.CTkEntry(panel_superior, width=70, justify="center")
+        self.entry_rows.grid(row=0, column=1, padx=3, pady=6)
 
-        btn_generar = ctk.CTkButton(panel_superior, text="Generar matriz", command=self.matriz_de_seleccion)
-        btn_generar.grid(row=0, column=4, padx=8)
+        ctk.CTkLabel(panel_superior, text="Columnas:").grid(row=0, column=2, padx=(5, 2), pady=6, sticky="e")
+        self.entry_cols = ctk.CTkEntry(panel_superior, width=70, justify="center")
+        self.entry_cols.grid(row=0, column=3, padx=3, pady=6)
 
-        # Botones de modo
-        self.btn_inicio = ctk.CTkButton(panel_superior, text="Inicio", command=lambda: self.modo_de_seleccion("Inicio"))
-        self.btn_inicio.grid(row=1, column=0, pady=8, padx=4)
+        ctk.CTkLabel(panel_superior, text="Beta:").grid(row=0, column=4, padx=(5, 2), pady=6, sticky="e")
+        self.entry_beta = ctk.CTkEntry(panel_superior, width=70, justify="center")
+        self.entry_beta.grid(row=0, column=5, padx=3, pady=6)
 
-        self.btn_veneno = ctk.CTkButton(panel_superior, text="Veneno", command=lambda: self.modo_de_seleccion("Veneno"))
-        self.btn_veneno.grid(row=1, column=1, pady=8, padx=4)
+        btn_generar = ctk.CTkButton(panel_superior, text="🧩 Generar matriz", width=140, command=self.matriz_de_seleccion)
+        btn_generar.grid(row=0, column=6, padx=10, pady=6, sticky="e")
 
-        self.btn_meta = ctk.CTkButton(panel_superior, text="Meta", command=lambda: self.modo_de_seleccion("Meta"))
-        self.btn_meta.grid(row=1, column=2, pady=8, padx=4)
+        modo_frame = ctk.CTkFrame(panel_superior, fg_color="transparent")
+        modo_frame.grid(row=1, column=0, columnspan=7, pady=8, sticky="ew")
 
-        self.btn_borrar = ctk.CTkButton(panel_superior, text="Borrar", command=lambda: self.modo_de_seleccion("Borrar"))
-        self.btn_borrar.grid(row=1, column=3, pady=8, padx=4)
 
-        btn_limpiar = ctk.CTkButton(panel_superior, text="Limpiar matriz", command=self.limpiar)
-        btn_limpiar.grid(row=1, column=4, padx=8)
+        for i in range(6):
+            modo_frame.grid_columnconfigure(i, weight=1)
 
-        # Etiqueta informativa
-        self.lbl_msg = ctk.CTkLabel(panel_superior, text="Selecciona un modo y haz clic en la matriz.")
-        self.lbl_msg.grid(row=2, column=0, columnspan=5, sticky="w", pady=(6, 0), padx=4)
+        self.btn_inicio = ctk.CTkButton(modo_frame, text="🚩 Inicio", command=lambda: self.modo_de_seleccion("Inicio"))
+        self.btn_inicio.grid(row=0, column=0, padx=4, pady=6, sticky="ew")
 
-        # Frame para la matriz
-        self.frame_grid = ctk.CTkFrame(self.root)
-        self.frame_grid.pack(side="top", fill="both", expand=True, padx=8, pady=8)
+        self.btn_veneno = ctk.CTkButton(modo_frame, text="☠️ Veneno", command=lambda: self.modo_de_seleccion("Veneno"))
+        self.btn_veneno.grid(row=0, column=1, padx=4, pady=6, sticky="ew")
+
+        self.btn_meta = ctk.CTkButton(modo_frame, text="🎯 Meta", command=lambda: self.modo_de_seleccion("Meta"))
+        self.btn_meta.grid(row=0, column=2, padx=4, pady=6, sticky="ew")
+
+        btn_limpiar = ctk.CTkButton(modo_frame, text="🧹 Limpiar", command=self.limpiar)
+        btn_limpiar.grid(row=0, column=3, padx=4, pady=6, sticky="ew")
+
+        btn_ejecutar = ctk.CTkButton(modo_frame, text="⚙️ Ejecutar Beam Search", fg_color="#1E88E5", hover_color="#1565C0", command=self.ejecutar_beam_search)
+        btn_ejecutar.grid(row=0, column=4, padx=4, pady=6, sticky="ew")
+
+        self.lbl_msg = ctk.CTkLabel(panel_superior, text="💡 Selecciona un modo y haz clic en la matriz.", anchor="w", font=ctk.CTkFont(size=13, weight="bold"))
+        self.lbl_msg.grid(row=2, column=0, columnspan=7, sticky="w", padx=8, pady=(5, 2))
+
+        self.frame_grid = ctk.CTkFrame(self.root, corner_radius=15)
+        self.frame_grid.pack(side="top", fill="both", expand=True, padx=12, pady=10)
+
 
     def modo_de_seleccion(self, modo):
         self.modo = modo
         self.lbl_msg.configure(
-            text=f"Modo actual: {modo.capitalize()}. Click izquierdo para marcar, derecho para borrar."
+            text=f"Modo actual: {modo}"
         )
 
         for btn, name in [
             (self.btn_inicio, "Inicio"),
             (self.btn_veneno, "Veneno"),
             (self.btn_meta, "Meta"),
-            (self.btn_borrar, "Borrar"),
         ]:
             btn.configure(fg_color="#253144" if name == modo else "transparent")
 
@@ -86,11 +96,10 @@ class Interfaz:
         self.cols = cols
         self.inicio_pos = None
         self.meta_pos = None
-        self.generar_grid()
+        self.generar_matriz()
 
-    def generar_grid(self):
+    def generar_matriz(self):
         """Genera una matriz centrada y con celdas compactas."""
-        # Limpiar contenido previo
         for i in self.frame_grid.winfo_children():
             i.destroy()
 
@@ -109,24 +118,24 @@ class Interfaz:
 
         for i in range(self.rows):
             for j in range(self.cols):
-                b = ctk.CTkButton(
+                button = ctk.CTkButton(
                     frame_centrado,
                     text="",
                     width=cell_size,
                     height=cell_size,
                     fg_color=COLORES[VACIA],
-                    corner_radius=6,
+                    corner_radius=6,    
                     border_width=1,
                     border_color="#d1d5db",
                     hover_color="#e2e8f0",
                     command=lambda i=i, j=j: self.click_celda(i, j),
                 )
-                b.place(
+                button.place(
                     x=j * (cell_size + spacing),
                     y=i * (cell_size + spacing)
                 )
-                b.bind("<Button-3>", lambda e, i=i, j=j: self.erase_cell(i, j))
-                self.botones[i][j] = b
+                button.bind("<Button-3>", lambda e, i=i, j=j: self.erase_cell(i, j))
+                self.botones[i][j] = button
 
         self.lbl_msg.configure(text=f"Haz clic para marcar según el modo actual: {self.modo}.")
 
@@ -167,22 +176,6 @@ class Interfaz:
             self.set_cell(i, j, META)
             self.meta_pos = (i, j)
 
-        elif self.modo == "Borrar":
-            # Borrar cualquier cosa (pero si era inicio o meta, actualizamos variables)
-            self.set_cell(i, j, VACIA)
-            if self.inicio_pos == (i, j):
-                self.inicio_pos = None
-            if self.meta_pos == (i, j):
-                self.meta_pos = None
-
-    def erase_cell(self, i, j):
-        """Borra celda con clic derecho"""
-        self.set_cell(i, j, VACIA)
-        if self.inicio_pos == (i, j):
-            self.inicio_pos = None
-        if self.meta_pos == (i, j):
-            self.meta_pos = None
-
     def set_cell(self, i, j, valor):
         """Actualiza el valor y color de una celda"""
         self.laberinto[i][j] = valor
@@ -194,10 +187,46 @@ class Interfaz:
         if not hasattr(self, "rows") or not hasattr(self, "cols"):
             self.lbl_msg.configure(text="⚠️ Primero genera una matriz.")
             return
-
         self.inicio_pos = None
         self.meta_pos = None
         for i in range(self.rows):
             for j in range(self.cols):
                 self.set_cell(i, j, VACIA)
         self.lbl_msg.configure(text="🧹 Matriz limpiada.")
+
+    def ejecutar_beam_search(self):
+        """Ejecuta el algoritmo Beam Search sobre la matriz actual."""
+        if not self.inicio_pos or not self.meta_pos:
+            self.lbl_msg.configure(text="⚠️ Debes marcar un inicio y una meta.")
+            return
+        
+        try:
+            problem = Problem(self.laberinto)
+            start_state = self.inicio_pos
+            goal_state = self.meta_pos
+            beta = int(self.entry_beta.get())
+            ruta = beam_search(problem, start_state, goal_state, beta=beta)
+        except Exception as e:
+            self.lbl_msg.configure(text=f"❌ Error ejecutando Beam Search: {e}")
+            return
+        if not ruta:
+            self.lbl_msg.configure(text="⚠️ No se encontró un camino.")
+            return
+
+        def pintar_paso(index):
+            if index >= len(ruta):
+                return 
+            
+            nodo = ruta[index]
+            i, j = nodo.state
+            if nodo.parent != None:
+                print(nodo.parent)
+            else:
+                print(f"{nodo.state} es la raíz")
+            if (i, j) != self.inicio_pos and (i, j) != self.meta_pos:
+                self.set_cell(i, j, CAMINO)
+
+            self.root.after(500, lambda: pintar_paso(index + 1))
+
+        pintar_paso(0)
+
