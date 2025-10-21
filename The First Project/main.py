@@ -1,4 +1,4 @@
-from interfaz import Interfaz
+from Interfaz import *
 import customtkinter as ctk
 
 if __name__ == "__main__":
